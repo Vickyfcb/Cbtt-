@@ -1,0 +1,847 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Engineering Materials Theory Quiz</title>
+  <style>
+    body {
+      font-family: Arial, sans-serif;
+      margin: 20px auto;
+      max-width: 800px;
+      line-height: 1.6;
+    }
+    h1 {
+      text-align: center;
+      color: #333;
+    }
+    .timer {
+      font-size: 18px;
+      margin-bottom: 20px;
+      color: red;
+      text-align: center;
+    }
+    .progress {
+      font-size: 16px;
+      margin-bottom: 20px;
+      text-align: center;
+      color: #555;
+    }
+    .question {
+      margin-bottom: 20px;
+      padding: 15px;
+      border: 1px solid #ccc;
+      border-radius: 5px;
+      background-color: #f9f9f9;
+      display: none;
+    }
+    .question.active {
+      display: block;
+    }
+    .question strong {
+      display: block;
+      margin-bottom: 10px;
+      color: #2c3e50;
+    }
+    .options label {
+      display: block;
+      margin: 8px 0;
+      cursor: pointer;
+    }
+    .options input {
+      margin-right: 10px;
+    }
+    .button-row {
+      margin-top: 20px;
+      text-align: center;
+    }
+    button {
+      padding: 10px 20px;
+      margin: 0 10px;
+      cursor: pointer;
+      background-color: #007bff;
+      color: white;
+      border: none;
+      border-radius: 5px;
+    }
+    button:disabled {
+      opacity: 0.5;
+      cursor: not-allowed;
+    }
+    button:hover:not(:disabled) {
+      background-color: #0056b3;
+    }
+    @media (max-width: 600px) {
+      .question {
+        padding: 10px;
+      }
+      button {
+        padding: 8px 16px;
+        font-size: 14px;
+      }
+    }
+  </style>
+</head>
+<body>
+  <h1>Engineering Materials Theory Quiz</h1>
+  <div class="timer" id="timer">Time Remaining: 30:00</div>
+  <div class="progress" id="progress">Page 1 of 12</div>
+  <form id="quizForm">
+    <div id="quizContainer"></div>
+    <div class="button-row">
+      <button type="button" id="prevBtn" onclick="prevPage()">Previous</button>
+      <button type="button" id="nextBtn" onclick="nextPage()">Next</button>
+      <button type="submit" id="submitBtn" style="display: none;">Submit</button>
+    </div>
+  </form>
+
+  <script>
+    // Define all 120 questions
+    const questions = [
+      {
+        q: "A material costs $6 per kg and has a density of 2.5 g/cm³. What is the cost per cm³?",
+        options: ["$0.012", "$0.015", "$0.025", "$0.030"],
+        answer: 1
+      },
+      {
+        q: "Which material has the highest strength-to-weight ratio? Material A: ρ=2.7 g/cm³, σ=300 MPa; Material B: ρ=7.8 g/cm³, σ=600 MPa; Material C: ρ=1.4 g/cm³, σ=180 MPa; Material D: ρ=4.5 g/cm³, σ=500 MPa",
+        options: ["Material A", "Material B", "Material C", "Material D"],
+        answer: 2
+      },
+      {
+        q: "For minimizing cost while maximizing strength, choose the material with the highest σ/cost ratio: Material A: σ=350 MPa, $7/kg; Material B: σ=250 MPa, $4/kg; Material C: σ=400 MPa, $10/kg; Material D: σ=500 MPa, $14/kg",
+        options: ["Material A", "Material B", "Material C", "Material D"],
+        answer: 1
+      },
+      {
+        q: "Which material provides the highest stiffness-to-weight ratio? A: E=70 GPa, ρ=2.7; B: E=210 GPa, ρ=7.8; C: E=100 GPa, ρ=1.4; D: E=180 GPa, ρ=4.5",
+        options: ["Material A", "Material B", "Material C", "Material D"],
+        answer: 2
+      },
+      {
+        q: "A steel beam weighs 120 kg and costs $2.50/kg. What is the total material cost?",
+        options: ["$280", "$290", "$300", "$320"],
+        answer: 2
+      },
+      {
+        q: "Aluminum produces 12 kg CO₂/kg. For 50 kg, and offset cost=$0.05/kg CO₂, what is the total carbon cost?",
+        options: ["$20", "$25", "$30", "$35"],
+        answer: 2
+      },
+      {
+        q: "You purchase 1000 kg of titanium, but only 720 kg goes into final products. What is the material efficiency?",
+        options: ["70%", "72%", "75%", "78%"],
+        answer: 1
+      },
+      {
+        q: "Material cost=$8/kg, 25% scrap, recover 60% of it at 50% value. What is the effective cost per usable kg?",
+        options: ["$5.40", "$6.00", "$7.00", "$7.40"],
+        answer: 0
+      },
+      {
+        q: "Two materials: A: σ=400 MPa, ρ=2.5; B: σ=600 MPa, ρ=4.5. Which is lighter for the same strength?",
+        options: ["Material A", "Material B", "Both equal", "Not enough data"],
+        answer: 0
+      },
+      {
+        q: "Choose best for energy absorption using M=σy²/(Eρ): A: σy=400 MPa, E=100 GPa, ρ=2.5; B: σy=600 MPa, E=200 GPa, ρ=7.5",
+        options: ["Material A", "Material B", "Both equal", "Depends on temperature"],
+        answer: 0
+      },
+      {
+        q: "Material X costs $6/kg and is 100% recyclable at 70% of its original cost. If 80% is successfully recycled and reused in the second cycle, what is the effective cost per kg over two life cycles?",
+        options: ["$4.68", "$5.00", "$5.28", "$5.60"],
+        answer: 2
+      },
+      {
+        q: "A steel sheet costs $150/m². Each component uses 0.04 m² (including waste). What is the material cost per component?",
+        options: ["$4.50", "$5.25", "$6.00", "$7.20"],
+        answer: 2
+      },
+      {
+        q: "Material A: $4/kg, 10% waste; Material B: $3/kg, 30% waste. Which is more economical per kg of finished part?",
+        options: ["Material A", "Material B", "Both equal", "Depends on quantity"],
+        answer: 1
+      },
+      {
+        q: "An aluminum rod (α=23×10⁻⁶/°C, L=1 m) is heated by 100°C. How much does it expand?",
+        options: ["1.8 mm", "2.0 mm", "2.3 mm", "3.0 mm"],
+        answer: 2
+      },
+      {
+        q: "You need 0.002 m³ of copper (ρ=8900 kg/m³). What is the mass?",
+        options: ["16.5 kg", "17.8 kg", "18.5 kg", "19.2 kg"],
+        answer: 1
+      },
+      {
+        q: "Which material is most suitable for lightweight structures? A: 2.7 g/cm³; B: 1.4 g/cm³; C: 7.8 g/cm³; D: 5.0 g/cm³",
+        options: ["Material A", "Material B", "Material C", "Material D"],
+        answer: 1
+      },
+      {
+        q: "Which has the highest specific strength? A: 500 MPa, ρ=7.8; B: 300 MPa, ρ=2.7; C: 100 MPa, ρ=1.3; D: 250 MPa, ρ=2.5",
+        options: ["Material A", "Material B", "Material C", "Material D"],
+        answer: 1
+      },
+      {
+        q: "A steel component has E=200 GPa, σy=250 MPa. What is its strain energy density at yield?",
+        options: ["78.12 kJ/m³", "125.0 kJ/m³", "156.25 kJ/m³", "210.0 kJ/m³"],
+        answer: 2
+      },
+      {
+        q: "Compare: Steel: $2/kg, ρ=7.8; Aluminum: $4/kg, ρ=2.7. Which is more cost-effective per volume?",
+        options: ["Steel", "Aluminum", "Equal", "Depends on shape"],
+        answer: 1
+      },
+      {
+        q: "A plastic panel costs $6 and lasts 6 years. What is the annualized material cost?",
+        options: ["$0.80", "$1.00", "$1.20", "$1.50"],
+        answer: 1
+      },
+      {
+        q: "Which material index best suits a component requiring minimum weight under bending?",
+        options: ["E¹⁄² / ρ", "E / ρ²", "σ / ρ", "E³⁄² / ρ"],
+        answer: 0
+      },
+      {
+        q: "A composite with high specific stiffness is ideal for:",
+        options: ["Reducing material cost", "Minimizing thermal expansion", "High-load, low-weight structural elements", "Improving impact energy absorption"],
+        answer: 2
+      },
+      {
+        q: "Which material failure mechanism dominates in turbine blades under cyclic thermal and mechanical loading?",
+        options: ["Yielding", "Creep", "Thermal fatigue", "Delamination"],
+        answer: 2
+      },
+      {
+        q: "For a wing structure, the best material selection index to balance stiffness and mass is:",
+        options: ["E / ρ", "σy / ρ", "K / Cp", "ρ / E"],
+        answer: 0
+      },
+      {
+        q: "Which property combination is most desirable for heat shields in spacecraft?",
+        options: ["High density, high thermal conductivity", "Low density, high heat capacity", "Low thermal conductivity, high ablation resistance", "High emissivity, low fracture toughness"],
+        answer: 2
+      },
+      {
+        q: "Fracture toughness (K_IC) is crucial for selecting materials in:",
+        options: ["Components prone to wear", "High-velocity impact zones", "Bolted joints", "High-temperature oxidation environments"],
+        answer: 1
+      },
+      {
+        q: "Which material is most suitable for a high-temperature, load-bearing aerospace application?",
+        options: ["Al 7075", "Titanium alloy", "Glass fiber composite", "Stainless steel 304"],
+        answer: 1
+      },
+      {
+        q: "The best criterion for thermal insulation in weight-sensitive aircraft walls is:",
+        options: ["Low specific heat", "Low thermal conductivity and low density", "High density and low conductivity", "High conductivity and high reflectivity"],
+        answer: 1
+      },
+      {
+        q: "In a material selection process, the objective function refers to:",
+        options: ["Set of constraints", "Property to maximize or minimize", "Processing route", "Environmental limit"],
+        answer: 1
+      },
+      {
+        q: "Creep resistance in metals is most improved by:",
+        options: ["Increasing grain boundary density", "Alloying with low-melting point metals", "Solid-solution strengthening and grain size control", "Cold working"],
+        answer: 2
+      },
+      {
+        q: "Which of the following enhances fatigue resistance in metals?",
+        options: ["Increasing surface roughness", "Annealing", "Shot peening", "Cold rolling"],
+        answer: 2
+      },
+      {
+        q: "The primary mechanism of damage in carbon fiber composites under compression is:",
+        options: ["Matrix cracking", "Delamination", "Fiber breakage", "Creep deformation"],
+        answer: 0
+      },
+      {
+        q: "Which thermal property is most critical for hypersonic skin materials?",
+        options: ["Specific heat", "Thermal conductivity", "Emissivity", "Density"],
+        answer: 2
+      },
+      {
+        q: "Which material is best suited for a supersonic leading edge?",
+        options: ["Inconel 718", "CFRP", "Ultra-high temperature ceramic", "Magnesium alloy"],
+        answer: 2
+      },
+      {
+        q: "Ashby plots help primarily in:",
+        options: ["Finite element meshing", "Comparing failure modes", "Visualizing material performance trade-offs", "Estimating stress concentrations"],
+        answer: 2
+      },
+      {
+        q: "Which method is most accurate for evaluating fatigue life in aerospace structures?",
+        options: ["Goodman diagram", "Palmgren-Miner rule", "Strain-life approach", "Von Mises criterion"],
+        answer: 2
+      },
+      {
+        q: "In thermal barrier coatings, zirconia is used because of its:",
+        options: ["High electrical resistivity", "High thermal conductivity", "Low thermal conductivity", "High melting point and oxidation rate"],
+        answer: 2
+      },
+      {
+        q: "For impact energy absorption, the preferred index is:",
+        options: ["σy²/(Eρ)", "E/ρ²", "K_IC/ρ", "σy/E"],
+        answer: 0
+      },
+      {
+        q: "Material selection for cryogenic tanks should prioritize:",
+        options: ["High thermal expansion", "Low ductility", "High fracture toughness", "High creep strength"],
+        answer: 2
+      },
+      {
+        q: "The dominant heat transfer mode in aerobraking surfaces at hypersonic speed is:",
+        options: ["Conduction", "Convection", "Radiation", "Advection"],
+        answer: 2
+      },
+      {
+        q: "Which factor is least likely to affect material recyclability?",
+        options: ["Melting point", "Alloying complexity", "Toxic by-products", "Yield strength"],
+        answer: 3
+      },
+      {
+        q: "Which of the following enhances fatigue resistance in metals?",
+        options: ["Increasing surface roughness", "Annealing", "Shot peening", "Cold rolling"],
+        answer: 2
+      },
+      {
+        q: "The Griffith criterion applies primarily to:",
+        options: ["Fatigue loading", "Elastic deformation", "Brittle fracture", "Plastic yielding"],
+        answer: 2
+      },
+      {
+        q: "Which metal is most prone to stress corrosion cracking?",
+        options: ["Titanium", "Stainless steel", "Magnesium", "Aluminum"],
+        answer: 3
+      },
+      {
+        q: "Hybrid composites combine materials to:",
+        options: ["Reduce voids", "Increase conductivity", "Maximize stiffness-to-cost ratio", "Eliminate delamination"],
+        answer: 2
+      },
+      {
+        q: "The best material for acoustic damping in aircraft interiors is:",
+        options: ["Titanium", "Glass fiber-reinforced polymer", "CFRP", "Stainless steel"],
+        answer: 1
+      },
+      {
+        q: "Which factor most influences creep rate?",
+        options: ["Grain shape", "Applied stress", "Dislocation density", "Machining speed"],
+        answer: 1
+      },
+      {
+        q: "Which of these would reduce the thermal conductivity of a composite?",
+        options: ["Fiber alignment", "Use of polymer matrix", "High fiber volume fraction", "Inclusion of metal fillers"],
+        answer: 1
+      },
+      {
+        q: "For high-strain rate impact resistance, the most suitable material is:",
+        options: ["Epoxy", "Kevlar", "Nylon", "ABS"],
+        answer: 1
+      },
+      {
+        q: "The Poisson's ratio of an ideal incompressible material is:",
+        options: ["0", "0.25", "0.5", "1"],
+        answer: 2
+      },
+      {
+        q: "In finite element analysis, increasing mesh density:",
+        options: ["Reduces accuracy", "Reduces simulation time", "Increases local stress resolution", "Decreases degrees of freedom"],
+        answer: 2
+      },
+      {
+        q: "Which alloy has the best strength-to-weight ratio for aerospace frames?",
+        options: ["Inconel 718", "Al 2024", "Ti-6Al-4V", "Steel AISI 4340"],
+        answer: 2
+      },
+      {
+        q: "The primary failure mode in fiber-reinforced composite laminates is:",
+        options: ["Fiber buckling", "Interfacial debonding", "Plastic flow", "Eutectic cracking"],
+        answer: 1
+      },
+      {
+        q: "The matrix in fiber-reinforced composites primarily:",
+        options: ["Carries the load", "Bonds the fibers", "Prevents fatigue", "Increases thermal resistance"],
+        answer: 1
+      },
+      {
+        q: "A material with negative coefficient of thermal expansion is:",
+        options: ["CFRP", "Shape memory alloy", "Invar", "Zirconia"],
+        answer: 2
+      },
+      {
+        q: "The rule of mixtures is used to estimate:",
+        options: ["Thermal conductivity of metals", "Strength of polymers", "Properties of composite materials", "Elasticity of ceramics"],
+        answer: 2
+      },
+      {
+        q: "Which process is best for near-net shape titanium parts?",
+        options: ["Sand casting", "Powder metallurgy", "Die casting", "Rolling"],
+        answer: 1
+      },
+      {
+        q: "In topology optimization, material is:",
+        options: ["Selected based on stiffness", "Removed from low-stress regions", "Applied uniformly", "Prioritized by cost"],
+        answer: 1
+      },
+      {
+        q: "The glass transition temperature applies to:",
+        options: ["Metals", "Ceramics", "Polymers", "Composites"],
+        answer: 2
+      },
+      {
+        q: "CFRP's directional properties are due to:",
+        options: ["Resin cross-linking", "Fiber anisotropy", "Porosity", "Carbonization"],
+        answer: 1
+      },
+      {
+        q: "The effect of laminate stacking sequence in composite structures primarily impacts:",
+        options: ["Thermal conductivity", "Mechanical anisotropy", "Electrical resistivity", "Cure time"],
+        answer: 1
+      },
+      {
+        q: "Which material index is most relevant for minimizing weight in long, slender columns under buckling?",
+        options: ["σy / ρ", "E¹⁄² / ρ", "E / ρ²", "K_IC / ρ"],
+        answer: 1
+      },
+      {
+        q: "Superalloys are primarily used in aerospace due to their:",
+        options: ["Excellent electrical conductivity", "High fracture toughness", "Resistance to creep and oxidation at elevated temperatures", "Low thermal expansion coefficient"],
+        answer: 2
+      },
+      {
+        q: "The plateau region in a stress-strain curve is associated with:",
+        options: ["Elastic deformation", "Yielding and plastic flow", "Fracture initiation", "Strain hardening"],
+        answer: 1
+      },
+      {
+        q: "The passive oxide layer formed on titanium alloys contributes to:",
+        options: ["Improved electrical insulation", "Enhanced thermal conductivity", "Better wear resistance", "Superior corrosion resistance"],
+        answer: 3
+      },
+      {
+        q: "Toughness of a material is best represented by:",
+        options: ["The area under the stress-strain curve", "The slope of the elastic region", "The height of the yield plateau", "The strain at fracture"],
+        answer: 0
+      },
+      {
+        q: "Brittle fracture in ceramics is primarily caused by:",
+        options: ["Low hardness", "Surface or internal flaws", "Grain boundary sliding", "Elevated ductility"],
+        answer: 1
+      },
+      {
+        q: "Which joint type provides the highest fatigue resistance in mechanical design?",
+        options: ["Threaded bolt", "Adhesively bonded joint", "Interference fit", "Riveted lap joint"],
+        answer: 1
+      },
+      {
+        q: "The most suitable material for cryogenic storage tanks is:",
+        options: ["Ferritic steel", "Titanium alloy", "Austenitic stainless steel", "Epoxy resin"],
+        answer: 2
+      },
+      {
+        q: "The typical density of carbon fiber-reinforced polymer (CFRP) is approximately:",
+        options: ["0.9 g/cm³", "1.6 g/cm³", "2.7 g/cm³", "7.8 g/cm³"],
+        answer: 1
+      },
+      {
+        q: "CFRP materials begin to degrade structurally above:",
+        options: ["100°C", "150°C", "180°C", "250°C"],
+        answer: 2
+      },
+      {
+        q: "Metal matrix composites (MMCs) are typically selected for their:",
+        options: ["Low manufacturing cost", "Improved corrosion resistance", "Superior high-temperature mechanical performance", "Greater electrical insulation"],
+        answer: 2
+      },
+      {
+        q: "Creep deformation becomes critical in metals at temperatures exceeding approximately:",
+        options: ["0.1 times the melting temperature", "0.25 times the melting temperature", "0.4 times the melting temperature", "0.6 times the melting temperature"],
+        answer: 2
+      },
+      {
+        q: "Which of the following is not considered a structural composite?",
+        options: ["Glass fiber laminate", "Carbon fiber panel", "Metal matrix composite", "Aerogel"],
+        answer: 3
+      },
+      {
+        q: "Plasma spraying is most commonly used to:",
+        options: ["Shape bulk metal components", "Form composite laminates", "Apply protective surface coatings", "Perform additive manufacturing"],
+        answer: 2
+      },
+      {
+        q: "Diffusion bonding is ideal for joining:",
+        options: ["Polymer composites", "Similar metals at elevated temperatures", "Ceramic and metal interfaces", "Titanium to polymers"],
+        answer: 1
+      },
+      {
+        q: "One major advantage of additive manufacturing for aerospace parts is:",
+        options: ["Increased surface roughness", "Higher material hardness", "Reduced material waste", "Enhanced thermal resistance"],
+        answer: 2
+      },
+      {
+        q: "Open-cell metallic foams are particularly useful in applications requiring:",
+        options: ["Load-bearing with high stiffness", "Energy absorption and impact damping", "Electrical conductivity", "Sealing against fluid ingress"],
+        answer: 1
+      },
+      {
+        q: "Internal oxidation in high-temperature alloys is caused by:",
+        options: ["Outward diffusion of oxygen", "Inward diffusion of oxygen", "Nitrogen contamination", "Surface carburization"],
+        answer: 1
+      },
+      {
+        q: "Shape memory alloys rely on which transformation mechanism?",
+        options: ["Precipitation hardening", "Martensitic phase transformation", "Work hardening", "Grain boundary diffusion"],
+        answer: 1
+      },
+      {
+        q: "The direction of principal stresses is most relevant in:",
+        options: ["Creep resistance design", "Diffusion calculations", "Fracture mechanics and failure analysis", "Thermal expansion matching"],
+        answer: 2
+      },
+      {
+        q: "Which parameter most directly governs low-cycle fatigue behavior?",
+        options: ["Frequency of loading", "Mean stress", "Total strain amplitude", "Crack initiation time"],
+        answer: 2
+      },
+      {
+        q: "The main purpose of using functionally graded materials is to:",
+        options: ["Reduce cost by blending cheap materials", "Improve manufacturing speed", "Achieve gradual variation in properties across volume", "Allow easy recycling"],
+        answer: 2
+      },
+      {
+        q: "In composites, increasing the fiber volume fraction typically results in:",
+        options: ["Lower stiffness", "Improved matrix bonding", "Higher longitudinal strength", "Reduced thermal stability"],
+        answer: 2
+      },
+      {
+        q: "Which crack propagation path is most common in anisotropic composite laminates?",
+        options: ["Straight through fibers", "Zig-zag through resin", "Along fiber-matrix interfaces", "Across fiber cross-sections"],
+        answer: 2
+      },
+      {
+        q: "The most dominant failure mechanism in bonded joints under peel stress is:",
+        options: ["Shear fracture", "Adhesive yielding", "Interface delamination", "Fiber rupture"],
+        answer: 2
+      },
+      {
+        q: "In hypersonic vehicle skin design, the major challenge for material selection is:",
+        options: ["Low thermal conductivity", "Radiative heat resistance", "Surface oxidation", "High acoustic damping"],
+        answer: 2
+      },
+      {
+        q: "Functionally graded thermal barriers are often used because:",
+        options: ["They cost less to manufacture", "They reduce residual stresses from thermal gradients", "Their density is uniform", "They act as electrical insulators"],
+        answer: 1
+      },
+      {
+        q: "Which material offers the best combination of thermal shock resistance and low thermal expansion?",
+        options: ["Alumina", "Silicon nitride", "Zirconia", "Silicon carbide"],
+        answer: 1
+      },
+      {
+        q: "A material is said to have viscoelastic behavior when it shows:",
+        options: ["Time-independent elastic and viscous response", "Time-dependent elastic and viscous response", "Irrecoverable strain after unloading", "Permanent viscous deformation under constant load"],
+        answer: 1
+      },
+      {
+        q: "UV degradation of polymers typically results in:",
+        options: ["Increased toughness", "Chain scission and surface embrittlement", "Lower oxygen permeability", "Improved color retention"],
+        answer: 1
+      },
+      {
+        q: "Which of the following is most accurate for measuring crack tip displacement during fracture?",
+        options: ["Digital caliper", "Thermographic camera", "Digital Image Correlation", "Coordinate Measuring Machine"],
+        answer: 2
+      },
+      {
+        q: "In advanced composites, ply angle greatly influences:",
+        options: ["Electrical resistance", "Delamination energy", "Load distribution and stiffness", "Fiber-to-matrix bonding"],
+        answer: 2
+      },
+      {
+        q: "For dynamic fracture toughness testing, the preferred method is:",
+        options: ["Charpy impact test", "Brinell hardness test", "Nanoindentation", "Torsional creep test"],
+        answer: 0
+      },
+      {
+        q: "High-performance nanocomposites exhibit exceptional properties due to:",
+        options: ["Uniform grain structure", "High specific gravity", "Large surface area-to-volume ratio", "Enhanced melting point"],
+        answer: 2
+      },
+      {
+        q: "A major benefit of ultra-high temperature ceramics (UHTCs) in aerospace is:",
+        options: ["High thermal insulation", "Low emissivity", "Stability above 2000°C", "Easy machinability"],
+        answer: 2
+      },
+      {
+        q: "Embodied energy of a material refers to:",
+        options: ["Energy released on combustion", "Energy required for recycling", "Total energy input for production", "Thermal conductivity per unit mass"],
+        answer: 2
+      },
+      {
+        q: "Which of the following is most relevant to recyclability?",
+        options: ["Ductility", "Material purity", "Glass transition temperature", "Fracture toughness"],
+        answer: 1
+      },
+      {
+        q: "For lightweight structural optimization, topology optimization helps by:",
+        options: ["Adding high-strength alloy inserts", "Minimizing non-load-carrying volume", "Increasing safety factors", "Uniformly distributing material"],
+        answer: 1
+      },
+      {
+        q: "Which insulation material combines ultra-low thermal conductivity and extreme lightness?",
+        options: ["Polyimide", "Carbon foam", "Aerogel", "Phenolic board"],
+        answer: 2
+      },
+      {
+        q: "In material selection under uncertainty or incomplete data, a suitable method is:",
+        options: ["Pareto analysis", "Finite difference method", "Multi-attribute utility theory", "Modal analysis"],
+        answer: 2
+      },
+      {
+        q: "Which alloy is best suited for structural applications above 1000°C in aerospace engines?",
+        options: ["Titanium alloy", "Inconel", "Magnesium alloy", "Stainless steel 304"],
+        answer: 1
+      },
+      {
+        q: "The critical property of TPS (thermal protection systems) in re-entry vehicles is:",
+        options: ["Low weight", "High thermal diffusivity", "Ablative capacity", "High stiffness"],
+        answer: 2
+      },
+      {
+        q: "The most suitable material for radiation shielding in aerospace is:",
+        options: ["Graphene", "Boron carbide", "Carbon fiber", "Polyethylene terephthalate"],
+        answer: 1
+      },
+      {
+        q: "In high-cycle fatigue, which parameter is most critical?",
+        options: ["Total strain amplitude", "Stress range", "Plastic strain", "Strain rate"],
+        answer: 1
+      },
+      {
+        q: "Which property is most essential in aeroelastic control surfaces?",
+        options: ["Density", "Yield strength", "Damping ratio", "Specific heat"],
+        answer: 2
+      },
+      {
+        q: "For cryogenic rocket fuel tanks, the main concern is:",
+        options: ["Yield strength at high temperature", "Thermal fatigue", "Fracture toughness at low temperatures", "Creep resistance"],
+        answer: 2
+      },
+      {
+        q: "A material with a high strength-to-weight ratio and corrosion resistance used in UAVs is:",
+        options: ["Titanium alloy", "Copper", "Mild steel", "Brass"],
+        answer: 0
+      },
+      {
+        q: "Which index is suitable for selecting insulation material in low-conductivity, low-weight applications?",
+        options: ["k/ρ", "ρ/k", "Cp × k", "α × ρ"],
+        answer: 1
+      },
+      {
+        q: "The thermal fatigue life of materials is most influenced by:",
+        options: ["Thermal conductivity", "Coefficient of thermal expansion", "Surface hardness", "Specific heat"],
+        answer: 1
+      },
+      {
+        q: "Which material is best suited for long-term dimensional stability in precision instruments?",
+        options: ["Glass fiber composite", "CFRP", "Invar", "Polycarbonate"],
+        answer: 2
+      },
+      {
+        q: "The effectiveness of a heat shield is significantly affected by:",
+        options: ["Density", "Emissivity", "Electrical resistivity", "Porosity"],
+        answer: 1
+      },
+      {
+        q: "Which lightweight alloy has the best corrosion resistance in marine aerospace applications?",
+        options: ["Al 2024", "Al 7075", "Al 5083", "Al 6061"],
+        answer: 2
+      },
+      {
+        q: "Which is most appropriate for high-strength structural additive manufacturing?",
+        options: ["PLA", "PETG", "PEEK", "ABS"],
+        answer: 2
+      },
+      {
+        q: "To improve fatigue performance of gears, use:",
+        options: ["Annealing", "Surface nitriding", "Shot blasting", "Quenching"],
+        answer: 1
+      },
+      {
+        q: "The durability of a material exposed to UV radiation depends heavily on:",
+        options: ["Elastic modulus", "Carbon black content", "Density", "Grain size"],
+        answer: 1
+      },
+      {
+        q: "Ceramic matrix composites are primarily used in aerospace for:",
+        options: ["Electrical insulation", "High temperature structural integrity", "Lightweight casings", "Corrosion prevention"],
+        answer: 1
+      },
+      {
+        q: "Which of the following contributes most to the stiffness of a laminate?",
+        options: ["Matrix modulus", "Fiber orientation", "Resin content", "Moisture content"],
+        answer: 1
+      },
+      {
+        q: "The main disadvantage of titanium alloys in aerospace is:",
+        options: ["Poor fatigue life", "High cost", "Corrosion susceptibility", "High density"],
+        answer: 1
+      },
+      {
+        q: "Additive manufacturing of metals typically requires:",
+        options: ["High-strength adhesives", "Electron beam or laser melting", "Die casting molds", "Arc welding equipment"],
+        answer: 1
+      },
+      {
+        q: "The best approach to reduce carbon footprint in material selection is:",
+        options: ["Minimize strength-to-weight ratio", "Select lowest density material", "Choose recyclable materials with low embodied energy", "Use highest specific heat materials"],
+        answer: 2
+      }
+    ];
+
+    // Fisher-Yates shuffle to randomize questions
+    function shuffle(array) {
+      for (let i = array.length - 1; i > 0; i--) {
+        const j = Math.floor(Math.random() * (i + 1));
+        [array[i], array[j]] = [array[j], array[i]];
+      }
+      return array;
+    }
+
+    // Shuffle questions
+    shuffle(questions);
+
+    const questionsPerPage = 10;
+    let currentPage = 0;
+    const quizContainer = document.getElementById("quizContainer");
+    const submitButton = document.getElementById("submitBtn");
+    const prevButton = document.getElementById("prevBtn");
+    const nextButton = document.getElementById("nextBtn");
+    const progressEl = document.getElementById("progress");
+
+    function renderAllQuestions() {
+      quizContainer.innerHTML = '';
+      questions.forEach((q, i) => {
+        const div = document.createElement("div");
+        div.className = "question";
+        div.id = `question-${i}`;
+        div.innerHTML = `<strong>Question ${i + 1}:</strong> ${q.q}`;
+        const opts = document.createElement("div");
+        opts.className = "options";
+
+        q.options.forEach((opt, j) => {
+          opts.innerHTML += `
+            <label>
+              <input type="radio" name="q${i}" value="${j}"> ${opt}
+            </label>
+          `;
+        });
+
+        div.appendChild(opts);
+        quizContainer.appendChild(div);
+      });
+    }
+
+    function showPage() {
+      const start = currentPage * questionsPerPage;
+      const end = Math.min(start + questionsPerPage, questions.length);
+
+      // Hide all questions, then show only the current page's questions
+      document.querySelectorAll('.question').forEach((div, i) => {
+        div.classList.toggle('active', i >= start && i < end);
+      });
+
+      prevButton.disabled = currentPage === 0;
+      nextButton.style.display = end < questions.length ? "inline" : "none";
+      submitButton.style.display = end === questions.length ? "inline" : "none";
+      progressEl.textContent = `Page ${currentPage + 1} of ${Math.ceil(questions.length / questionsPerPage)}`;
+    }
+
+    function nextPage() {
+      if ((currentPage + 1) * questionsPerPage < questions.length) {
+        currentPage++;
+        showPage();
+      }
+    }
+
+    function prevPage() {
+      if (currentPage > 0) {
+        currentPage--;
+        showPage();
+      }
+    }
+
+    document.getElementById("quizForm").onsubmit = function (e) {
+      e.preventDefault();
+      let score = 0;
+      let answeredCount = 0;
+      const failedAnswers = [];
+
+      // Grade all 120 questions
+      for (let i = 0; i < questions.length; i++) {
+        const ans = document.querySelector(`input[name="q${i}"]:checked`);
+        const q = questions[i];
+        const isCorrect = ans && parseInt(ans.value) === q.answer;
+        if (ans) answeredCount++;
+        if (isCorrect) score++;
+        if (!isCorrect) {
+          failedAnswers.push({
+            question: q.q,
+            selected: ans ? q.options[parseInt(ans.value)] : "None",
+            correct: q.options[q.answer],
+            status: ans ? "Incorrect" : "Unanswered"
+          });
+        }
+      }
+
+      const percent = (score / questions.length) * 100;
+      let grade = "F";
+      if (percent >= 70) grade = "A";
+      else if (percent >= 60) grade = "B";
+      else if (percent >= 50) grade = "C";
+      else if (percent >= 45) grade = "D";
+
+      let feedback = `You scored ${score}/${questions.length} (${percent.toFixed(2)}%)\n`;
+      feedback += `Questions answered: ${answeredCount}/${questions.length}\nGrade: ${grade}\n\n`;
+      if (failedAnswers.length > 0) {
+        feedback += `Incorrect or Unanswered Questions:\n`;
+        failedAnswers.forEach((ans, i) => {
+          feedback += `Q${questions.findIndex(q => q.q === ans.question) + 1}: ${ans.question}\nYour answer: ${ans.selected}\nCorrect answer: ${ans.correct}\n${ans.status}\n\n`;
+        });
+      } else {
+        feedback += `Perfect score! All questions answered correctly.\n`;
+      }
+
+      console.log(`Processed ${questions.length} questions, ${answeredCount} answered, Score: ${score}, Failed: ${failedAnswers.length}`);
+      clearInterval(countdown);
+      alert(feedback);
+    };
+
+    // Timer logic
+    let time = 30 * 60; // 30 minutes
+    const timerEl = document.getElementById("timer");
+    const countdown = setInterval(() => {
+      const minutes = Math.floor(time / 60);
+      const seconds = time % 60;
+      timerEl.textContent = `Time Remaining: ${minutes}:${seconds.toString().padStart(2, "0")}`;
+      timerEl.style.color = time <= 60 ? "darkred" : "red";
+
+      if (time <= 0) {
+        clearInterval(countdown);
+        alert("Time's up! Submitting your answers...");
+        document.getElementById("quizForm").requestSubmit();
+      }
+      time--;
+    }, 1000);
+
+    renderAllQuestions();
+    showPage();
+  </script>
+</body>
+</html>
